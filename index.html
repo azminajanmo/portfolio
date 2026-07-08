@@ -42,12 +42,22 @@
 
   /* ── Reveal ── */
   .reveal {
-    opacity: 0; transform: translateY(24px);
-    transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.75s cubic-bezier(0.16,1,0.3,1), transform 0.75s cubic-bezier(0.16,1,0.3,1);
   }
   .reveal.on { opacity: 1; transform: translateY(0); }
+  .reveal-left {
+    opacity: 0; transform: translateX(-36px);
+    transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal-left.on { opacity: 1; transform: translateX(0); }
+  .reveal-right {
+    opacity: 0; transform: translateX(36px);
+    transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal-right.on { opacity: 1; transform: translateX(0); }
   @media (prefers-reduced-motion: reduce) {
-    .reveal { opacity:1; transform:none; transition:none; }
+    .reveal, .reveal-left, .reveal-right { opacity:1; transform:none; transition:none; }
     * { animation-duration:0.01ms!important; transition-duration:0.01ms!important; }
   }
 
@@ -128,6 +138,14 @@
     width: 100%; aspect-ratio: 4/5;
     border-radius: 12px; overflow: hidden;
     border: 1px solid var(--border);
+    animation: float 5s ease-in-out 1.2s infinite;
+  }
+  .skill-panel-body .skill-tag {
+    opacity: 0;
+    animation: none;
+  }
+  .skill-panel[open] .skill-panel-body .skill-tag {
+    animation: tagIn 0.35s cubic-bezier(0.16,1,0.3,1) forwards;
   }
   .hero-photo img {
     width: 100%; height: 100%;
@@ -185,11 +203,13 @@
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 8px; padding: 28px 28px 24px;
     border-left: 3px solid var(--accent);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s cubic-bezier(0.16,1,0.3,1), border-color 0.2s;
+    will-change: transform;
   }
   .feat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 20px 48px rgba(30,122,110,0.12), 0 4px 12px rgba(0,0,0,0.06);
+    border-left-color: var(--accent);
   }
   .feat-tag {
     font-family: var(--mono); font-size: 0.68rem;
@@ -352,12 +372,20 @@
 
   /* ── Keyframes ── */
   @keyframes fadeUp {
-    from { opacity:0; transform:translateY(20px); }
+    from { opacity:0; transform:translateY(28px); }
     to   { opacity:1; transform:translateY(0); }
   }
   @keyframes fadeIn {
     from { opacity:0; }
     to   { opacity:1; }
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0px); }
+    50%      { transform: translateY(-8px); }
+  }
+  @keyframes tagIn {
+    from { opacity:0; transform:translateY(10px) scale(0.95); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
   }
 
   /* ── Responsive ── */
@@ -480,7 +508,7 @@
   <div class="exp-list">
 
     <!-- Autodesk -->
-    <div class="exp-item reveal">
+    <div class="exp-item reveal" style="transition-delay:0s">
       <div class="exp-meta">
         <p class="exp-date">Jan 2023 - Present</p>
         <p class="exp-company">Autodesk</p>
@@ -504,7 +532,7 @@
     </div>
 
     <!-- KIXEYE -->
-    <div class="exp-item reveal">
+    <div class="exp-item reveal" style="transition-delay:0.1s">
       <div class="exp-meta">
         <p class="exp-date">Aug 2020 - Jun 2022</p>
         <p class="exp-company">KIXEYE Canada</p>
@@ -528,7 +556,7 @@
     </div>
 
     <!-- Azmar -->
-    <div class="exp-item reveal">
+    <div class="exp-item reveal" style="transition-delay:0.2s">
       <div class="exp-meta">
         <p class="exp-date">Feb 2010 - Aug 2020</p>
         <p class="exp-company">Azmar Management Group</p>
@@ -717,14 +745,48 @@
   }, { threshold: 0 });
   heroObs.observe(hero);
 
-  // Scroll reveals
-  const revEls = document.querySelectorAll('.reveal');
+  // Scroll reveals (all variants)
   const revObs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) { e.target.classList.add('on'); revObs.unobserve(e.target); }
     });
-  }, { threshold: 0.1 });
-  revEls.forEach(el => revObs.observe(el));
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => revObs.observe(el));
+
+  // Skill tag stagger on panel open
+  document.querySelectorAll('.skill-panel').forEach(panel => {
+    panel.addEventListener('toggle', () => {
+      if (panel.open) {
+        const tags = panel.querySelectorAll('.skill-tag');
+        tags.forEach((t, i) => {
+          t.style.animationDelay = `${i * 0.04}s`;
+          t.style.animation = 'none';
+          requestAnimationFrame(() => {
+            t.style.animation = `tagIn 0.35s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s forwards`;
+          });
+        });
+      }
+    });
+    // Init open panel tags
+    if (panel.open) {
+      panel.querySelectorAll('.skill-tag').forEach((t, i) => {
+        t.style.animation = `tagIn 0.35s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s forwards`;
+      });
+    }
+  });
+
+  // Card tilt on mousemove
+  document.querySelectorAll('.feat-card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = `translateY(-6px) scale(1.01) rotateX(${-y * 4}deg) rotateY(${x * 4}deg)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+  });
 
   // Stat counters
   function animateCount(el) {
