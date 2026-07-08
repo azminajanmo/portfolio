@@ -430,7 +430,21 @@
     .stats-inner { grid-template-columns: repeat(2,1fr); gap: 20px; }
     .stat-item + .stat-item { border-left: none; }
     .stat-item:nth-child(3), .stat-item:nth-child(4) { border-top: 1px solid var(--border); padding-top: 20px; }
-    .featured-grid { grid-template-columns: 1fr; }
+    .featured-grid {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      gap: 16px;
+      padding-bottom: 16px;
+      scrollbar-width: none;
+    }
+    .featured-grid::-webkit-scrollbar { display: none; }
+    .featured-grid .feat-card {
+      flex: 0 0 85vw;
+      scroll-snap-align: start;
+      max-width: 340px;
+    }
     .exp-item { grid-template-columns: 1fr; gap: 4px; }
     .exp-meta { margin-bottom: 12px; }
     .skills-cols { grid-template-columns: 1fr; }
